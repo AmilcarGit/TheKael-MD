@@ -8,6 +8,7 @@ export default {
   category: "Owner",
   description: "Actualiza el bot",
   owner: true,
+  ownerOnly: true,
 
   run: async (sock, msg, args, context) => {
     const { chatId } = context;
