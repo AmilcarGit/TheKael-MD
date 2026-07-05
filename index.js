@@ -1,3 +1,4 @@
+//creador dela base Edward 👑💯
 import baileysPkg from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import readline from "readline";
