@@ -126,7 +126,7 @@ async function startMegumi() {
     if (metodo.trim() === "1") {
       const numero = await question(
         chalk.yellow(
-          "\nEscribe tu número de WhatsApp con código de país (sin + ni espacios). Ej: 50499999999\nNúmero: "
+          "\nEscribe tu número de WhatsApp con código de país (sin + ni espacios). Ej: 51910227479\nNúmero: "
         )
       );
 
@@ -175,7 +175,7 @@ async function startMegumi() {
     } else if (connection === "open") {
       console.log(
         chalk.greenBright(
-          `\n🌸 ${config.botName} conectada correctamente. ¡Lista para trabajar!\n`
+          `\n👑 ${config.botName} conectada correctamente. ¡Lista para trabajar!\n`
         )
       );
 
@@ -217,7 +217,7 @@ async function startMegumi() {
         if (action === "add") {
           await sock.sendMessage(chatId, {
             text:
-              `🌸 ¡Bienvenido/a @${numero} a *${nombreGrupo}*!\n` +
+              `⭐ ¡Bienvenido/a @${numero} a *${nombreGrupo}*!\n` +
               `Esperamos que la pases increíble por aquí. ❀`,
             mentions: [participante],
           });
