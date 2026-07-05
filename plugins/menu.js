@@ -2,15 +2,22 @@ import { config } from "../config.js";
 
 const MENU_IMAGE = "https://files.catbox.moe/1farsq.webp";
 
+const ICONOS_CATEGORIA = {
+  General: "💎",
+  Grupo: "👑",
+  Descargas: "🔥",
+  Owner: "⚡",
+  Otros: "✨",
+};
+
 export default {
   command: ["menu", "help", "ayuda"],
   category: "General",
   description: "Muestra el menú de comandos ordenado por categorías.",
   run: async (sock, msg, args, context) => {
-    const { chatId, allPlugins } = context;
+    const { sender, chatId, allPlugins } = context;
 
     const categorias = {};
-
     for (const plugin of allPlugins) {
       const categoria = plugin.category || "Otros";
       if (!categorias[categoria]) categorias[categoria] = [];
@@ -22,30 +29,43 @@ export default {
       timeStyle: "short",
     });
 
-    let texto = `╭─❀ *${config.botName.toUpperCase()}* ❀─╮\n`;
-    texto += `│ 👑 Creador: *${config.creator}*\n`;
-    texto += `│ 🕐 ${fecha}\n`;
-    texto += `╰────────────────╯\n`;
+    const totalComandos = allPlugins.reduce(
+      (acc, p) => acc + p.command.length,
+      0
+    );
+    const numero = sender.split("@")[0].split(":")[0];
+
+    let texto = `🔥 「 *${config.botName.toUpperCase()}* 」 🔥\n`;
+    texto += `╭─────────────────────╮\n`;
+    texto += `│ 👑 *Creador:* ${config.creator}\n`;
+    texto += `│ 💎 *Usuario:* @${numero}\n`;
+    texto += `│ 🕐 *Fecha:* ${fecha}\n`;
+    texto += `│ ⚡ *Comandos:* ${totalComandos}\n`;
+    texto += `│ 📦 *Plugins:* ${allPlugins.length}\n`;
+    texto += `╰─────────────────────╯\n`;
 
     const nombresCategorias = Object.keys(categorias).sort();
 
     for (const categoria of nombresCategorias) {
-      texto += `\n┌─「 *${categoria}* 」\n`;
+      const icono = ICONOS_CATEGORIA[categoria] || "✨";
+      texto += `\n╭─❀ ${icono} *${categoria.toUpperCase()}* ❀\n`;
       for (const plugin of categorias[categoria]) {
         const comandoPrincipal = plugin.command[0];
-        texto += `│ ✦ *${comandoPrincipal}*\n`;
+        texto += `│ ➤ *${comandoPrincipal}*\n`;
         texto += `│   ${plugin.description || "Sin descripción"}\n`;
       }
-      texto += `└────────────────\n`;
+      texto += `╰──────────────\n`;
     }
 
-    texto += `\n_✿ No se usa prefijo, solo escribe el comando tal cual._`;
+    texto += `\n💎 _${config.botName} no usa prefijo — escribe el comando directo._`;
+    texto += `\n🔥 _Hecho con orgullo por ${config.creator}._ 👑`;
 
     await sock.sendMessage(
       chatId,
       {
         image: { url: MENU_IMAGE },
         caption: texto,
+        mentions: [sender],
       },
       { quoted: msg }
     );
