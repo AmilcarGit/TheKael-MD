@@ -1,6 +1,6 @@
 import { config } from "../config.js";
 
-const MENU_IMAGE = "https://files.catbox.moe/1farsq.webp";
+const MENU_IMAGE = "https://files.catbox.moe/e259p4.png";
 
 const ICONOS_CATEGORIA = {
   General: "💎",
