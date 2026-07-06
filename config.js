@@ -1,5 +1,5 @@
 export const config = {
-  botName: "TheKael-MD",
+  botName: "TheYui-MD",
   creator: "AmilcarGit",
   ownerNumber: "51910227479",
   sessionFolder: "./session",
