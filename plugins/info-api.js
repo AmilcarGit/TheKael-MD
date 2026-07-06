@@ -36,7 +36,7 @@ function bold(texto) {
 
 export default {
   command: ["apistatus", "estadoapi", "apiinfo"],
-  category: "info",
+  category: "Info",
   description: "Muestra el estado de la API",
   run: async (sock, msg, args, context) => {
     const { chatId } = context;
