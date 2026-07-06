@@ -24,7 +24,8 @@ const ICONOS_CATEGORIA = {
   Grupo: "◈",
   Descargas: "▣",
   Owner: "▲",
-  Otros: "◇",
+  Otros: "◇", 
+  Anime: "𖤐",
 };
 
 function formatearUptime(segundos) {
