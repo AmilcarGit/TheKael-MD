@@ -7,7 +7,6 @@ export default {
   command: ["update", "gitpull", "pull", "up"],
   category: "Owner",
   description: "Actualiza el bot",
-  owner: true,
   ownerOnly: true,
 
   run: async (sock, msg, args, context) => {
