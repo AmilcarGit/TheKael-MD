@@ -1,6 +1,6 @@
 export default {
   command: ["perfil", "profile"],
-  category: "General",
+  category: "Info",
   description: "Muestra tu perfil o el de un usuario mencionado.",
 
   run: async (sock, msg, args, context) => {
