@@ -10,6 +10,7 @@ import { loadPlugins } from "./pluginLoader.js";
 import { pasaFiltros, esAdminDeGrupo } from "./middlewares.js";
 import { obtenerConfigGrupo } from "./groupSettings.js";
 import * as subbotManager from "./subbotManager.js";
+import { iniciarLimpiezaAutomatica } from "./limpieza.js";
 
 const {
   default: makeWASocket,
@@ -53,6 +54,16 @@ async function startBot() {
 
   plugins = await loadPlugins();
   subbotManager.setPlugins(plugins);
+
+  iniciarLimpiezaAutomatica(30 * 60 * 1000, ({ archivosEliminados, bytesLiberados }) => {
+    if (archivosEliminados > 0) {
+      console.log(
+        chalk.magenta(
+          `🧹 Limpieza automática: ${archivosEliminados} archivo(s) temporal(es) eliminado(s).`
+        )
+      );
+    }
+  });
 
   const { state, saveCreds } = await useMultiFileAuthState(
     config.sessionFolder
