@@ -75,45 +75,54 @@ export default {
   category: "General",
   description: "Muestra el menú de comandos con botones interactivos.",
   run: async (sock, msg, args, context) => {
-    const { sender, chatId, allPlugins } = context;
+    const { sender, chatId, allPlugins, body } = context;
     const numero = sender.split("@")[0].split(":")[0];
-    const categoriaArg = args.join(" ").toLowerCase().trim();
 
-    // Si el mensaje es "menu <categoria>", mostrar solo esa categoría
-    if (categoriaArg) {
-      const categoriaMap = {
-        general: "General",
-        grupo: "Grupo",
-        descargas: "Descargas",
-        anime: "Anime",
-        owner: "Owner",
-        info: "Info",
-        otros: "Otros",
-      };
+    // Determinar la categoría solicitada
+    let categoriaSolicitada = null;
+    const argumento = args.join(" ").toLowerCase().trim();
 
-      const categoria = categoriaMap[categoriaArg];
-      if (!categoria) {
-        await sock.sendMessage(
-          chatId,
-          { text: "❌ Categoría no válida. Usa: General, Grupo, Descargas, Anime, Owner, Info." },
-          { quoted: msg }
-        );
-        return;
+    // Mapeo de nombres de categorías
+    const categoriaMap = {
+      general: "General",
+      grupo: "Grupo",
+      descargas: "Descargas",
+      anime: "Anime",
+      owner: "Owner",
+      info: "Info",
+      otros: "Otros",
+    };
+
+    // Si el argumento es un ID de botón (empieza con "menu_")
+    if (argumento.startsWith("menu_")) {
+      const catKey = argumento.replace("menu_", "");
+      if (catKey === "principal") {
+        // Volver al menú principal
+        categoriaSolicitada = null;
+      } else {
+        categoriaSolicitada = categoriaMap[catKey] || null;
       }
+    } else if (argumento) {
+      // Si el usuario escribió "menu general" o "menu_general" (sin prefijo "menu_")
+      const catKey = argumento.replace("menu_", "").replace(" ", "").trim();
+      categoriaSolicitada = categoriaMap[catKey] || categoriaMap[argumento] || null;
+    }
 
-      const pluginsCategoria = obtenerComandosPorCategoria(allPlugins, categoria);
+    // Si se solicitó una categoría válida, mostrarla
+    if (categoriaSolicitada) {
+      const pluginsCategoria = obtenerComandosPorCategoria(allPlugins, categoriaSolicitada);
       if (pluginsCategoria.length === 0) {
         await sock.sendMessage(
           chatId,
-          { text: `❌ No hay comandos en la categoría *${categoria}*.` },
+          { text: `❌ No hay comandos en la categoría *${categoriaSolicitada}*.` },
           { quoted: msg }
         );
         return;
       }
 
-      const icono = ICONOS_CATEGORIA[categoria] || "✨";
-      const texto = `🌸┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🌸\n`;
-      texto += `   ${icono} *${categoria.toUpperCase()}* ${icono}\n`;
+      const icono = ICONOS_CATEGORIA[categoriaSolicitada] || "✨";
+      let texto = `🌸┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🌸\n`;
+      texto += `   ${icono} *${categoriaSolicitada.toUpperCase()}* ${icono}\n`;
       texto += `   _Comandos disponibles_\n`;
       texto += `🌸┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🌸\n\n`;
       texto += formatearComandos(pluginsCategoria);
@@ -176,9 +185,9 @@ export default {
       type: 1,
     }));
 
-    // Botón adicional para volver al menú principal (aunque ya se puede con "menu")
+    // Botón para volver al menú principal
     botones.push({
-      buttonId: "menu",
+      buttonId: "menu_principal",
       buttonText: { displayText: "🏠 Menú principal" },
       type: 1,
     });
