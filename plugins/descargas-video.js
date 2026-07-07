@@ -67,7 +67,7 @@ export default {
     try {
       await sock.sendMessage(
         chatId,
-        { text: `╔═══════════════════╗\n║  🚀 THEKAEL-MD · DOWNLOADER    ║\n╚═══════════════════╝\n\n${mensajeCargando()}` },
+        { text: `╔═══════════════════╗\n║  🚀 THEYUI-MD · DOWNLOADER    ║\n╚═══════════════════╝\n\n${mensajeCargando()}` },
         { quoted: msg }
       );
 
@@ -106,7 +106,7 @@ export default {
 ║  ${barraProgreso(100)} 100%
 ║  ✅ Enviando video...
 ╚═════════════════════════╝
-⚡ TheKael-MD · Tecnología de vanguardia`;
+⚡ TheYui-MD · Tecnología de vanguardia`;
 
         await sock.sendMessage(
           chatId,
@@ -122,7 +122,7 @@ export default {
         chatId,
         {
           video: { url: info.download_url },
-          caption: `📹 *${titulo}*\n⏱️ ${duracion} · 📦 ${tamaño}\n\n✨ *TheKael-MD* — Más que un bot, una leyenda.`,
+          caption: `📹 *${titulo}*\n⏱️ ${duracion} · 📦 ${tamaño}\n\n✨ *TheYui-MD* — Más que un bot, una leyenda.`,
           fileName: `${titulo.slice(0, 60)}.mp4`,
           mimetype: "video/mp4",
         },
