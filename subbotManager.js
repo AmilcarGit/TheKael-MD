@@ -20,8 +20,6 @@ const {
 const CARPETA_SUBBOTS = "./subbots";
 const MAX_INTENTOS_RECONEXION = 2;
 
-// Los subbots comparten la misma lista de plugins que el bot principal.
-// index.js llama a setPlugins(plugins) una vez los carga al arrancar.
 let pluginsCompartidos = [];
 export function setPlugins(plugins) {
   pluginsCompartidos = plugins;
