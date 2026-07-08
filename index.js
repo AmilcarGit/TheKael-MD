@@ -7,7 +7,7 @@ import fs from "fs";
 
 import { config } from "./config.js";
 import { loadPlugins } from "./pluginLoader.js";
-import { pasaFiltros, esAdminDeGrupo } from "./middlewares.js";
+import { pasaFiltros, esAdminDeGrupo, botEsAdmin } from "./middlewares.js";
 import { obtenerConfigGrupo } from "./groupSettings.js";
 import * as subbotManager from "./subbotManager.js";
 import { iniciarLimpiezaAutomatica } from "./limpieza.js";
@@ -348,10 +348,38 @@ async function startBot() {
             await sock.sendMessage(chatId, { delete: msg.key });
           } catch (_) {}
 
-          await sock.sendMessage(chatId, {
-            text: `🚫 @${numeroBase} no se permiten enlaces en este grupo.`,
-            mentions: [sender],
-          });
+          // Pequeña pausa para no golpear la API de WhatsApp muy seguido
+          // (evita el error 429 "rate-overlimit" cuando llegan varios
+          // enlaces casi al mismo tiempo, ej. un ataque de spam).
+          await new Promise((r) => setTimeout(r, 800));
+
+          let botAdmin = false;
+          try {
+            botAdmin = await botEsAdmin(sock, chatId);
+          } catch (_) {}
+
+          if (botAdmin) {
+            try {
+              await sock.groupParticipantsUpdate(chatId, [sender], "remove");
+              await enviarConReintento(sock, chatId, {
+                text: `🚫 @${numeroBase} fue *expulsado* por enviar enlaces no permitidos.`,
+                mentions: [sender],
+              });
+            } catch (err) {
+              console.log(chalk.red(`❌ No se pudo expulsar a ${numeroBase} por antilink:`), err);
+              await enviarConReintento(sock, chatId, {
+                text: `🚫 @${numeroBase} no se permiten enlaces en este grupo (no pude expulsarlo).`,
+                mentions: [sender],
+              });
+            }
+          } else {
+            await enviarConReintento(sock, chatId, {
+              text:
+                `🚫 @${numeroBase} no se permiten enlaces en este grupo.\n` +
+                `⚠️ Hazme *administrador* para que pueda expulsar automáticamente a quien los envíe.`,
+              mentions: [sender],
+            });
+          }
 
           return;
         }
