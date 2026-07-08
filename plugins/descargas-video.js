@@ -41,30 +41,61 @@ function esLinkYouTube(url) {
 export default {
   command: ["video", "ytvideo", "mp4"],
   category: "Descargas",
-  description: "Descarga un video de YouTube desde un enlace. Uso: video <link de YouTube>",
+  description:
+    "Busca o descarga un video de YouTube. Uso: video <nombre> o video <link de YouTube>",
   run: async (sock, msg, args, context) => {
     const { chatId } = context;
-    const url = args[0]?.trim();
+    const entrada = args.join(" ").trim();
 
-    if (!url) {
+    if (!entrada) {
       await sock.sendMessage(
         chatId,
-        { text: "❀ Envía el enlace del video de YouTube.\nEjemplo: *video* https://youtu.be/abc123" },
-        { quoted: msg }
-      );
-      return;
-    }
-
-    if (!esLinkYouTube(url)) {
-      await sock.sendMessage(
-        chatId,
-        { text: "❌ El enlace no es válido. Solo se aceptan URLs de YouTube." },
+        {
+          text:
+            "❀ Escribe el nombre del video o pega un enlace de YouTube.\n" +
+            "Ejemplo: *video* shape of you\n" +
+            "Ejemplo: *video* https://youtu.be/abc123",
+        },
         { quoted: msg }
       );
       return;
     }
 
     try {
+      let url = entrada;
+      let tituloBusqueda = entrada;
+
+      // Si no es un link, primero buscamos el video igual que "play"
+      if (!esLinkYouTube(entrada)) {
+        await sock.sendMessage(
+          chatId,
+          { text: `🔎 Buscando *${entrada}*...` },
+          { quoted: msg }
+        );
+
+        const searchUrl = `${baseUrl}/api/search/youtube?apiKey=${apiKey}&query=${encodeURIComponent(
+          entrada
+        )}`;
+        const searchRes = await fetch(searchUrl);
+        const searchData = await searchRes.json();
+
+        const resultados =
+          searchData.result || searchData.data || searchData.results || [];
+        const primerVideo = Array.isArray(resultados) ? resultados[0] : resultados;
+
+        if (!primerVideo || !primerVideo.url) {
+          await sock.sendMessage(
+            chatId,
+            { text: "❌ No encontré resultados para esa búsqueda." },
+            { quoted: msg }
+          );
+          return;
+        }
+
+        url = primerVideo.url;
+        tituloBusqueda = primerVideo.title || entrada;
+      }
+
       await sock.sendMessage(
         chatId,
         { text: `╔═══════════════════╗\n║  🚀 THEYUI-MD · DOWNLOADER    ║\n╚═══════════════════╝\n\n${mensajeCargando()}` },
@@ -80,13 +111,13 @@ export default {
       if (!downloadData.status || !info || !info.download_url) {
         await sock.sendMessage(
           chatId,
-          { text: "❌ No pude descargar el video. Verifica que el enlace sea válido." },
+          { text: "❌ No pude descargar el video. Verifica que el enlace o la búsqueda sean válidos." },
           { quoted: msg }
         );
         return;
       }
 
-      const titulo = info.title || "Video sin título";
+      const titulo = info.title || tituloBusqueda || "Video sin título";
       const duracion = formatearDuracion(info.duration);
       const tamaño = bytesToMB(info.size);
       const vistas = info.views ? new Intl.NumberFormat().format(info.views) : "N/A";
