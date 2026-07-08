@@ -18,6 +18,8 @@ const pluginsPath = path.join(__dirname, "plugins");
  */
 export async function loadPlugins() {
   const plugins = [];
+  const invalidos = [];
+  const errores = [];
 
   if (!fs.existsSync(pluginsPath)) {
     fs.mkdirSync(pluginsPath, { recursive: true });
@@ -27,35 +29,63 @@ export async function loadPlugins() {
     .readdirSync(pluginsPath)
     .filter((file) => file.endsWith(".js"));
 
-  for (const file of files) {
+  const total = files.length;
+
+  for (let i = 0; i < total; i++) {
+    const file = files[i];
+
     try {
       const pluginUrl = url.pathToFileURL(path.join(pluginsPath, file)).href;
-      // Cache-busting para poder recargar plugins en caliente si se desea en el futuro
       const module = await import(`${pluginUrl}?update=${Date.now()}`);
       const plugin = module.default;
 
       if (!plugin || !plugin.command || !plugin.run) {
-        console.log(
-          chalk.yellow(`⚠️  Plugin inválido, se omite: ${file}`)
-        );
-        continue;
+        invalidos.push(file);
+      } else {
+        plugin.fileName = file;
+        plugins.push(plugin);
       }
-
-      plugin.fileName = file;
-      plugins.push(plugin);
-      console.log(
-        chalk.green(`✅ Plugin cargado: `) + chalk.cyan(file)
-      );
     } catch (err) {
-      console.log(
-        chalk.red(`❌ Error cargando el plugin ${file}:`), err
-      );
+      errores.push({ file, err });
+    }
+
+    const cargados = plugins.length;
+    const barraLargo = 20;
+    const llenos = Math.round(((i + 1) / total) * barraLargo);
+    const barra = "▓".repeat(llenos) + "░".repeat(barraLargo - llenos);
+
+    process.stdout.write(
+      `\r🦋 Cargando plugins ${chalk.cyan(barra)} ${i + 1}/${total} `
+    );
+  }
+
+  process.stdout.write("\n");
+
+  const categorias = {};
+  for (const p of plugins) {
+    const cat = p.category || "Otros";
+    categorias[cat] = (categorias[cat] || 0) + 1;
+  }
+
+  console.log(chalk.magentaBright(`\n╭─「 📦 *${config.botName}* 」`));
+  console.log(chalk.green(`│ ✅ ${plugins.length} plugin(s) cargado(s) correctamente`));
+
+  for (const [cat, cantidad] of Object.entries(categorias).sort()) {
+    console.log(chalk.gray(`│    · ${cat}: ${cantidad}`));
+  }
+
+  if (invalidos.length > 0) {
+    console.log(chalk.yellow(`│ ⚠️  ${invalidos.length} inválido(s): ${invalidos.join(", ")}`));
+  }
+
+  if (errores.length > 0) {
+    console.log(chalk.red(`│ ❌ ${errores.length} con error al cargar:`));
+    for (const { file, err } of errores) {
+      console.log(chalk.red(`│    · ${file} → ${err.message || err}`));
     }
   }
 
-  console.log(
-    chalk.magenta(`\n📦 ${config.botName} cargó ${plugins.length} plugin(s).\n`)
-  );
+  console.log(chalk.magentaBright(`╰────────────────────────\n`));
 
   return plugins;
 }
