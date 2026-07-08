@@ -311,7 +311,7 @@ async function startBot() {
 
     const esGrupo = chatId.endsWith("@g.us");
     const contieneLink =
-      /(https?:\/\/|chat\.whatsapp\.com|wa\.me\/|www\.)/i.test(body);
+  /(https?:\/\/|www\.)[^\s]+/i.test(body);
 
     if (esGrupo && contieneLink) {
       const configGrupo = obtenerConfigGrupo(chatId);
