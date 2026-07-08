@@ -55,10 +55,11 @@ async function enviarConReintento(sock, chatId, content, opciones = {}, intentos
 
 async function startBot() {
   console.log(
-    chalk.cyanBright(`
-❀════════════════════════════❀
-      ${config.botName.toUpperCase()} BOT — Creador: ${config.creator}
-❀════════════════════════════❀
+    chalk.magentaBright(`
+🌸━━━━━━━━━━━━━━━━━━━━━━━━━━━🌸
+        🦋 ${config.botName.toUpperCase()} 🦋
+     Creado por ${config.creator} · v${process.env.npm_package_version || "1.0.0"}
+🌸━━━━━━━━━━━━━━━━━━━━━━━━━━━🌸
 `)
   );
 
@@ -237,7 +238,7 @@ async function startBot() {
     } else if (connection === "open") {
       console.log(
         chalk.greenBright(
-          `\n👑 ${config.botName} conectada correctamente. ¡Lista para trabajar!\n`
+          `\n✅ ${config.botName} conectada y lista para trabajar 💕\n`
         )
       );
 
@@ -249,7 +250,7 @@ async function startBot() {
           }
           console.log(
             chalk.magenta(
-              `📦 Caché de ${Object.keys(todosLosGrupos).length} grupo(s) cargada.`
+              `📦 ${Object.keys(todosLosGrupos).length} grupo(s) en caché.`
             )
           );
         } catch (err) {
