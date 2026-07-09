@@ -65,7 +65,6 @@ export default {
       let url = entrada;
       let tituloBusqueda = entrada;
 
-      // Si no es un link, primero buscamos el video igual que "play"
       if (!esLinkYouTube(entrada)) {
         await sock.sendMessage(
           chatId,
@@ -123,6 +122,29 @@ export default {
       const vistas = info.views ? new Intl.NumberFormat().format(info.views) : "N/A";
       const likes = info.likes ? new Intl.NumberFormat().format(info.likes) : "N/A";
 
+      const archivoRes = await fetch(info.download_url);
+      const tipoContenido = archivoRes.headers.get("content-type") || "";
+
+      if (!archivoRes.ok || !tipoContenido.startsWith("video")) {
+        await sock.sendMessage(
+          chatId,
+          { text: "❌ El servidor no devolvió un video válido, intenta de nuevo en unos segundos." },
+          { quoted: msg }
+        );
+        return;
+      }
+
+      const bufferVideo = Buffer.from(await archivoRes.arrayBuffer());
+
+      if (bufferVideo.length < 10000) {
+        await sock.sendMessage(
+          chatId,
+          { text: "❌ El video descargado llegó incompleto o dañado, intenta con otro." },
+          { quoted: msg }
+        );
+        return;
+      }
+
       if (info.thumbnail) {
         const caption = `╔═══════════════════╗
 ║  🎬 *VIDEO LISTO*      ║
@@ -152,7 +174,7 @@ export default {
       await sock.sendMessage(
         chatId,
         {
-          video: { url: info.download_url },
+          video: bufferVideo,
           caption: `📹 *${titulo}*\n⏱️ ${duracion} · 📦 ${tamaño}\n\n✨ *TheYui-MD* — Más que un bot, una leyenda.`,
           fileName: `${titulo.slice(0, 60)}.mp4`,
           mimetype: "video/mp4",
