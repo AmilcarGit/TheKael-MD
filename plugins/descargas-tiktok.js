@@ -111,8 +111,8 @@ async function buscarTikTok(sock, chatId, msg, query) {
     for (let i = 0; i < max; i++) {
       const video = resultados[i];
       const duracion = formatearDuracion(video.duration);
-      const vistas = formatearVistas(video.views);
-      const autor = video.author || video.uploader || "Desconocido";
+      const vistas = formatearVistas(video.views || video.stats?.plays);
+      const autor = video.author?.nickname || video.author || video.uploader || "Desconocido";
       const titulo = video.title || "Sin título";
       texto += `${i + 1}. *${titulo.slice(0, 40)}*\n`;
       texto += `   👤 ${autor}  ⏱️ ${duracion}  👁️ ${vistas}\n\n`;
@@ -136,7 +136,7 @@ async function buscarTikTok(sock, chatId, msg, query) {
 
 async function descargarPorResultado(sock, chatId, msg, video, sender) {
   try {
-    const url = video.url || video.video_url || video.link;
+    const url = video.url || video.video_url || video.link || video.permalink;
     if (!url) {
       await sock.sendMessage(
         chatId,
@@ -179,15 +179,35 @@ async function descargarTikTok(sock, chatId, msg, url, sender) {
     );
 
     const downloadUrl = `${baseUrl}/api/download/tiktok?apiKey=${apiKey}&url=${encodeURIComponent(url)}`;
+    
     const downloadRes = await fetch(downloadUrl);
     const downloadData = await downloadRes.json();
 
-    const info = downloadData.result;
-
-    if (!downloadData.status || !info || !info.download_url) {
+    if (!downloadData.status || !downloadData.data || !downloadData.data.media) {
       await sock.sendMessage(
         chatId,
-        { text: "❌ No pude descargar el video. Verifica el enlace." },
+        {
+          text: `❌ No pude descargar el video. La API respondió:\n${downloadData.message || downloadData.error || "Error desconocido"}`
+        },
+        { quoted: msg }
+      );
+      return;
+    }
+
+    const info = downloadData.data;
+    const titulo = info.title || "Video de TikTok";
+    const duracion = formatearDuracion(info.duration);
+    const autor = info.author?.nickname || info.author?.username || "Desconocido";
+    const plays = info.stats?.plays || 0;
+    const likes = info.stats?.likes || 0;
+    const shares = info.stats?.shares || 0;
+    const comments = info.stats?.comments || 0;
+    const downloadUrlVideo = info.media?.no_watermark || info.media?.watermark;
+
+    if (!downloadUrlVideo) {
+      await sock.sendMessage(
+        chatId,
+        { text: "❌ No se encontró la URL del video." },
         { quoted: msg }
       );
       return;
@@ -195,35 +215,32 @@ async function descargarTikTok(sock, chatId, msg, url, sender) {
 
     quitarSaldo(numero, COSTO_DESCARGA);
 
-    const titulo = info.title || info.desc || "Video de TikTok";
-    const duracion = formatearDuracion(info.duration);
-    const autor = info.author || info.username || "Desconocido";
-    const vistas = formatearVistas(info.views);
-    const likes = info.likes ? new Intl.NumberFormat().format(info.likes) : "N/A";
-
-    if (info.thumbnail) {
-      const caption = `🌸┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🌸\n`;
+    if (info.media?.thumbnail || info.thumbnail) {
+      const thumbnail = info.media?.thumbnail || info.thumbnail || info.author?.avatar;
+      let caption = `🌸┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🌸\n`;
       caption += `  🎥 *TIKTOK DESCARGADO*\n`;
       caption += `🌸┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🌸\n\n`;
       caption += `📌 *${titulo.slice(0, 50)}*\n`;
       caption += `👤 ${autor}\n`;
       caption += `⏱️ Duración: ${duracion}\n`;
-      caption += `👁️ Vistas: ${vistas}\n`;
-      caption += `👍 Likes: ${likes}\n\n`;
+      caption += `👁️ Vistas: ${formatearVistas(plays)}\n`;
+      caption += `👍 Likes: ${likes.toLocaleString()}\n`;
+      caption += `💬 Comentarios: ${comments.toLocaleString()}\n`;
+      caption += `🔄 Compartidos: ${shares.toLocaleString()}\n\n`;
       caption += `💵 Costo: ${formatearMonto(COSTO_DESCARGA)}\n`;
       caption += `_Enviando video..._ 🌸`;
 
       await sock.sendMessage(
         chatId,
         {
-          image: { url: info.thumbnail },
+          image: { url: thumbnail },
           caption: caption,
         },
         { quoted: msg }
       );
     }
 
-    const videoBuffer = await fetch(info.download_url);
+    const videoBuffer = await fetch(downloadUrlVideo);
     const videoArrayBuffer = await videoBuffer.arrayBuffer();
     const buffer = Buffer.from(videoArrayBuffer);
 
@@ -241,7 +258,9 @@ async function descargarTikTok(sock, chatId, msg, url, sender) {
     console.error("❌ Error descargando TikTok:", err);
     await sock.sendMessage(
       chatId,
-      { text: "❌ Ocurrió un error al descargar el video de TikTok." },
+      {
+        text: `❌ Ocurrió un error al descargar el video de TikTok.\n\n${err.message || "Error desconocido"}`
+      },
       { quoted: msg }
     );
   }
