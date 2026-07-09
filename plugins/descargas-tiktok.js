@@ -1,6 +1,8 @@
 import { config } from "../config.js";
+import { obtenerUsuario, quitarSaldo, formatearMonto } from "../economyDB.js";
 
 const { baseUrl, apiKey } = config.apis.edward;
+const COSTO_DESCARGA = 15;
 
 function esUrlTikTok(texto) {
   const pattern = /^(https?:\/\/)?(www\.)?(tiktok\.com|vm\.tiktok\.com|vt\.tiktok\.com)\/.+/i;
@@ -23,26 +25,12 @@ function formatearVistas(vistas) {
   return num.toString();
 }
 
-function formatearFecha(fecha) {
-  if (!fecha) return "Desconocida";
-  try {
-    const diff = Math.floor((Date.now() - new Date(fecha).getTime()) / (1000 * 60 * 60 * 24 * 30));
-    if (diff < 1) return "Hace menos de un mes";
-    if (diff === 1) return "Hace 1 mes";
-    if (diff < 12) return `Hace ${diff} meses`;
-    const años = Math.floor(diff / 12);
-    return `Hace ${años} año${años > 1 ? 's' : ''}`;
-  } catch (_) {
-    return "Desconocida";
-  }
-}
-
 export default {
   command: ["tiktok", "tt", "tk"],
   category: "Descargas",
-  description: "Busca o descarga videos de TikTok. Usa: tiktok <busqueda> o tiktok <url> o tiktok <número>",
+  description: "Busca o descarga videos de TikTok (costo: 15 Yui). Usa: tiktok <busqueda> o tiktok <url> o tiktok <número>",
   run: async (sock, msg, args, context) => {
-    const { chatId } = context;
+    const { chatId, sender } = context;
     const arg = args.join(" ").trim();
 
     if (!arg) {
@@ -57,7 +45,7 @@ export default {
     if (!global.tiktokCache) global.tiktokCache = new Map();
 
     if (esUrlTikTok(arg)) {
-      await descargarTikTok(sock, chatId, msg, arg);
+      await descargarTikTok(sock, chatId, msg, arg, sender);
       return;
     }
 
@@ -82,7 +70,7 @@ export default {
         return;
       }
       const video = resultados[index];
-      await descargarPorResultado(sock, chatId, msg, video);
+      await descargarPorResultado(sock, chatId, msg, video, sender);
       return;
     }
 
@@ -131,7 +119,7 @@ async function buscarTikTok(sock, chatId, msg, query) {
     }
 
     texto += `🦋┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🦋\n`;
-    texto += `💕 Para descargar escribe: *tiktok <número>*\n`;
+    texto += `💕 Para descargar (costo 15 Yui) escribe: *tiktok <número>*\n`;
     texto += `🌹 Ejemplo: *tiktok 1*\n`;
     texto += `📌 También puedes pegar un enlace directo.`;
 
@@ -146,7 +134,7 @@ async function buscarTikTok(sock, chatId, msg, query) {
   }
 }
 
-async function descargarPorResultado(sock, chatId, msg, video) {
+async function descargarPorResultado(sock, chatId, msg, video, sender) {
   try {
     const url = video.url || video.video_url || video.link;
     if (!url) {
@@ -157,7 +145,7 @@ async function descargarPorResultado(sock, chatId, msg, video) {
       );
       return;
     }
-    await descargarTikTok(sock, chatId, msg, url);
+    await descargarTikTok(sock, chatId, msg, url, sender);
   } catch (err) {
     console.error("❌ Error descargando por resultado:", err);
     await sock.sendMessage(
@@ -168,11 +156,25 @@ async function descargarPorResultado(sock, chatId, msg, video) {
   }
 }
 
-async function descargarTikTok(sock, chatId, msg, url) {
+async function descargarTikTok(sock, chatId, msg, url, sender) {
+  const numero = sender.split("@")[0].split(":")[0];
+  const usuario = obtenerUsuario(numero);
+
+  if (usuario.saldo < COSTO_DESCARGA) {
+    await sock.sendMessage(
+      chatId,
+      {
+        text: `❌ No tienes suficiente saldo para descargar.\n💵 Costo: ${formatearMonto(COSTO_DESCARGA)}\n💵 Tu saldo: ${formatearMonto(usuario.saldo)}\n\n💕 Gana más Yui con *trabajar* o *diario*.`
+      },
+      { quoted: msg }
+    );
+    return;
+  }
+
   try {
     await sock.sendMessage(
       chatId,
-      { text: `🎥 Descargando video de TikTok...` },
+      { text: `🎥 Descargando video de TikTok...\n💸 Se te descontarán ${formatearMonto(COSTO_DESCARGA)} por esta descarga.` },
       { quoted: msg }
     );
 
@@ -191,6 +193,8 @@ async function descargarTikTok(sock, chatId, msg, url) {
       return;
     }
 
+    quitarSaldo(numero, COSTO_DESCARGA);
+
     const titulo = info.title || info.desc || "Video de TikTok";
     const duracion = formatearDuracion(info.duration);
     const autor = info.author || info.username || "Desconocido";
@@ -206,6 +210,7 @@ async function descargarTikTok(sock, chatId, msg, url) {
       caption += `⏱️ Duración: ${duracion}\n`;
       caption += `👁️ Vistas: ${vistas}\n`;
       caption += `👍 Likes: ${likes}\n\n`;
+      caption += `💵 Costo: ${formatearMonto(COSTO_DESCARGA)}\n`;
       caption += `_Enviando video..._ 🌸`;
 
       await sock.sendMessage(
@@ -226,7 +231,7 @@ async function descargarTikTok(sock, chatId, msg, url) {
       chatId,
       {
         video: buffer,
-        caption: `📹 *${titulo.slice(0, 60)}*\n👤 ${autor}\n✨ TheYui-MD — Tu waifu inteligente`,
+        caption: `📹 *${titulo.slice(0, 60)}*\n👤 ${autor}\n💵 Te hemos cobrado ${formatearMonto(COSTO_DESCARGA)} por esta descarga.\n✨ TheYui-MD — Tu waifu inteligente`,
         fileName: `tiktok_${Date.now()}.mp4`,
         mimetype: "video/mp4",
       },
