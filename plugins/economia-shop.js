@@ -2,59 +2,57 @@ import { formatearMonto } from "../economyDB.js";
 
 const ITEMS = [
   {
-    id: "stickers_pack",
-    nombre: "Pack de Stickers de Yui",
-    precio: 500,
-    descripcion: "Un pack de 10 stickers exclusivos de Yui",
-    emoji: "🎀"
-  },
-  {
-    id: "foto_waifu",
-    nombre: "Foto Waifu Personalizada",
+    id: "inversion_basica",
+    nombre: "Inversión Básica",
     precio: 1000,
-    descripcion: "Una imagen de tu waifu favorita generada por IA",
-    emoji: "🌸"
+    descripcion: "Te da 50 Yui de interés cada hora (máx 500/hora)",
+    emoji: "📈",
+    efecto: "interes_basico"
   },
   {
-    id: "rol_waifu",
-    nombre: "Rol Waifu en el grupo",
-    precio: 2000,
-    descripcion: "Obtén un rol especial de waifu en el grupo",
-    emoji: "💕"
+    id: "inversion_plus",
+    nombre: "Inversión Plus",
+    precio: 5000,
+    descripcion: "Te da 200 Yui de interés cada hora (máx 2000/hora)",
+    emoji: "📊",
+    efecto: "interes_plus"
   },
   {
-    id: "cancion_dedicada",
-    nombre: "Canción Dedicada",
-    precio: 1500,
-    descripcion: "Te envío una canción de tu artista favorito",
-    emoji: "🎵"
+    id: "vip_oro",
+    nombre: "Pase VIP Oro",
+    precio: 10000,
+    descripcion: "Duplica todas tus ganancias (trabajo, diario, intereses)",
+    emoji: "👑",
+    efecto: "vip_oro"
   },
   {
-    id: "super_sticker",
-    nombre: "Super Sticker Animado",
-    precio: 800,
-    descripcion: "Un sticker animado exclusivo de Yui",
-    emoji: "✨"
+    id: "vip_platino",
+    nombre: "Pase VIP Platino",
+    precio: 25000,
+    descripcion: "Triplica todas tus ganancias (trabajo, diario, intereses)",
+    emoji: "💎",
+    efecto: "vip_platino"
   },
   {
-    id: "mensaje_amor",
-    nombre: "Mensaje de Amor Personalizado",
-    precio: 300,
-    descripcion: "Te envío un mensaje de amor especial para ti",
-    emoji: "💌"
+    id: "socio",
+    nombre: "Socio Comercial",
+    precio: 15000,
+    descripcion: "Ganas un 5% de todas las compras de otros usuarios",
+    emoji: "🤝",
+    efecto: "socio"
   }
 ];
 
 export default {
   command: ["tienda", "shop"],
   category: "Economia",
-  description: "Muestra la tienda de Yui con todos los items disponibles.",
+  description: "Muestra la tienda con items que te hacen ganar más dinero.",
   run: async (sock, msg, args, context) => {
     const { chatId } = context;
 
     let texto = `🌸┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🌸\n`;
     texto += `  🛍️ *TIENDA DE YUI* 🛍️\n`;
-    texto += `  _Compra items exclusivos con tu dinero_ 💵\n`;
+    texto += `  _Invierte para ganar más dinero_ 💵\n`;
     texto += `🌸┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🌸\n\n`;
 
     for (const item of ITEMS) {
@@ -66,8 +64,8 @@ export default {
 
     texto += `🦋┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🦋\n`;
     texto += `💕 Para comprar escribe: *comprar <ID>*\n`;
-    texto += `🌹 Ejemplo: *comprar stickers_pack*\n`;
-    texto += `📌 También puedes ver tu inventario con: *inventario*`;
+    texto += `🌹 Ejemplo: *comprar inversion_basica*\n`;
+    texto += `📌 Tus efectos activos se aplican automáticamente.`;
 
     await sock.sendMessage(chatId, { text: texto }, { quoted: msg });
   }
