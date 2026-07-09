@@ -121,10 +121,10 @@ export default {
       await sock.sendMessage(
         chatId,
         {
-          video: { url: info.download_url },
-          caption: `📹 *${titulo}*\n⏱️ ${duracion} · 📦 ${tamaño}\n\n✨ *TheYui-MD* — Más que un bot, una leyenda.`,
-          fileName: `${titulo.slice(0, 60)}.mp4`,
+          document: { url: info.download_url },
           mimetype: "video/mp4",
+          fileName: `${titulo.slice(0, 60)}.mp4`,
+          caption: `📹 *${titulo}*\n⏱️ ${duracion} · 📦 ${tamaño}\n\n✨ *TheYui-MD* — Más que un bot, una leyenda.`,
         },
         { quoted: msg }
       );
