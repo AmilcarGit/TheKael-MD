@@ -27,6 +27,7 @@ const ICONOS_CATEGORIA = {
   Economia: "💰",
   Diversión: "🎮",
   Anime: "💕",
+  Ai: "🦾", 
   Seguridad: "🛡️",
   Owner: "💎",
   Otros: "✨",
