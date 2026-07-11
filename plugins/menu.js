@@ -21,6 +21,7 @@ async function obtenerImagenMenu() {
 const ICONOS_CATEGORIA = {
   General: "🦋",
   Info: "🎀",
+  busquedas: "🔭", 
   Descargas: "🌹",
   Utilidades: "🔧",
   Grupo: "👑",
