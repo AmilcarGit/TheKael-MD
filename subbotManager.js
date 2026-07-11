@@ -8,8 +8,6 @@ import path from "path";
 import { config } from "./config.js";
 import { pasaFiltros, esAdminDeGrupo, botEsAdmin } from "./middlewares.js";
 import { obtenerConfigGrupo } from "./groupSettings.js";
-import { obtenerSesionPack, registrarStickerEnSesion } from "./stickpackSessions.js";
-import { convertirImagenASticker } from "./stickerUtils.js";
 
 const {
   default: makeWASocket,
@@ -17,7 +15,6 @@ const {
   fetchLatestBaileysVersion,
   DisconnectReason,
   Browsers,
-  downloadMediaMessage,
 } = baileysPkg;
 
 const CARPETA_SUBBOTS = "./subbots";
@@ -308,26 +305,6 @@ async function iniciarSocketSubbot(numeroLimpio, sessionFolder, registro, { onPa
       msg.message.imageMessage?.caption ||
       msg.message.videoMessage?.caption ||
       "";
-
-    const numeroSenderLimpio = sender.split("@")[0].split(":")[0];
-    const sesionPack = obtenerSesionPack(chatId, numeroSenderLimpio);
-
-    if (sesionPack && msg.message.imageMessage) {
-      try {
-        const buffer = await downloadMediaMessage(msg, "buffer", {});
-        const stickerFinal = await convertirImagenASticker(
-          buffer,
-          sesionPack.packName,
-          sesionPack.authorName
-        );
-
-        await sock.sendMessage(chatId, { sticker: stickerFinal }, { quoted: msg });
-        registrarStickerEnSesion(chatId, numeroSenderLimpio);
-      } catch (err) {
-        console.log(chalk.red(`❌ [Subbot ${numeroLimpio}] Error convirtiendo imagen del stickpack:`), err);
-      }
-      return;
-    }
 
     if (!body) return;
 
