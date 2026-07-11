@@ -134,7 +134,7 @@ async function buscarTikTok(sock, chatId, msg, query) {
   }
 }
 
-async function descargarPorResultado(sock, chatId, msg, video, sender) {
+export async function descargarPorResultado(sock, chatId, msg, video, sender) {
   try {
     const url = video.url || video.video_url || video.link || video.permalink;
     if (!url) {
