@@ -1,11 +1,70 @@
 import baileysPkg from "@whiskeysockets/baileys";
-import sharp from "sharp";
+import fs from "fs";
+import path from "path";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import webp from "node-webpmux";
 
 const { downloadMediaMessage } = baileysPkg;
+const execFileAsync = promisify(execFile);
 
 const PACK_STICKER = "𝚃𝙷𝙴𝚈𝚄𝙸🦋";
 const AUTOR_STICKER = "© AmilcarGit 2026";
+const CARPETA_TEMP = "./temp";
+
+function asegurarCarpetaTemp() {
+  if (!fs.existsSync(CARPETA_TEMP)) {
+    fs.mkdirSync(CARPETA_TEMP, { recursive: true });
+  }
+}
+
+async function imagenABufferWebp(buffer) {
+  asegurarCarpetaTemp();
+
+  const id = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+  const inputPath = path.join(CARPETA_TEMP, `${id}-in`);
+  const outputPath = path.join(CARPETA_TEMP, `${id}-out.webp`);
+
+  fs.writeFileSync(inputPath, buffer);
+
+  try {
+    await execFileAsync("ffmpeg", [
+      "-y",
+      "-i",
+      inputPath,
+      "-vf",
+      "scale=512:512:force_original_aspect_ratio=decrease,format=rgba,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000",
+      "-vcodec",
+      "libwebp",
+      "-lossless",
+      "0",
+      "-qscale",
+      "75",
+      "-preset",
+      "picture",
+      "-an",
+      "-vsync",
+      "0",
+      outputPath,
+    ]);
+
+    return fs.readFileSync(outputPath);
+  } catch (err) {
+    if (String(err.message || err).includes("ENOENT")) {
+      throw new Error(
+        "ffmpeg no está instalado en el sistema. En Termux corre: pkg install ffmpeg -y"
+      );
+    }
+    throw err;
+  } finally {
+    try {
+      fs.unlinkSync(inputPath);
+    } catch (_) {}
+    try {
+      fs.unlinkSync(outputPath);
+    } catch (_) {}
+  }
+}
 
 async function agregarMetadataSticker(webpBuffer) {
   const img = new webp.Image();
@@ -58,8 +117,7 @@ export default {
 
     const tieneImagen = Boolean(mensajeObjetivo.message?.imageMessage);
     const tieneVideoOGif = Boolean(
-      mensajeObjetivo.message?.videoMessage ||
-        mensajeCitado?.videoMessage
+      mensajeObjetivo.message?.videoMessage || mensajeCitado?.videoMessage
     );
 
     if (!tieneImagen && !tieneVideoOGif) {
@@ -85,14 +143,7 @@ export default {
 
     try {
       const buffer = await downloadMediaMessage(mensajeObjetivo, "buffer", {});
-
-      const webpBuffer = await sharp(buffer)
-        .resize(512, 512, {
-          fit: "contain",
-          background: { r: 0, g: 0, b: 0, alpha: 0 },
-        })
-        .webp({ quality: 80 })
-        .toBuffer();
+      const webpBuffer = await imagenABufferWebp(buffer);
 
       let stickerFinal = webpBuffer;
       try {
@@ -101,16 +152,17 @@ export default {
         console.log("No se pudo agregar metadata al sticker:", errMetadata);
       }
 
-      await sock.sendMessage(
-        chatId,
-        { sticker: stickerFinal },
-        { quoted: msg }
-      );
+      await sock.sendMessage(chatId, { sticker: stickerFinal }, { quoted: msg });
     } catch (err) {
       console.log(err);
       await sock.sendMessage(
         chatId,
-        { text: "❌ No pude convertir la imagen a sticker. Intenta con otra imagen." },
+        {
+          text:
+            err.message?.includes("ffmpeg")
+              ? `❌ ${err.message}`
+              : "❌ No pude convertir la imagen a sticker. Intenta con otra imagen.",
+        },
         { quoted: msg }
       );
     }
