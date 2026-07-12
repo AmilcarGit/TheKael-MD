@@ -77,14 +77,14 @@ export default {
     texto += `  _Tu waifu inteligente_ 💕\n`;
     texto += `🌸┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🌸\n\n`;
 
-    texto += `╭─🎀 *ESTADÍSTICAS* 🎀\n`;
+    texto += `╭─٭🎀 *INFO BOT* 🎀\n`;
     texto += `│ 👤 @${numero}\n`;
     texto += `│ 💎 ${config.creator}\n`;
     texto += `│ 💵 Yui  │ ⏱️ ${uptime}\n`;
     texto += `│ ⚡ ${totalComandos} cmd  │ 📦 ${allPlugins.length} plugins\n`;
     texto += `│ 🕐 ${fecha}\n`;
     texto += `│ 🌐 Powerby:𝐖𝐇𝐀𝐓𝐒𝐀𝐏𝐏 𝐋𝐋𝐂`;   
-    texto += `╰───────────────╯\n\n`;
+    texto += `╰───────────────◉\n\n`;
 
     texto += `🌹 *MIS COMANDOS* 🦋`;
     texto += `🕹 𝐈𝐀 𝐄𝐍 𝐃𝐄𝐒𝐀𝐑𝐑𝐎𝐋𝐋𝐎 📡\n`;
