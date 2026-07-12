@@ -20,19 +20,18 @@ async function obtenerImagenMenu() {
 
 const ICONOS_CATEGORIA = {
   General: "🦋",
-  busquedas: "🔭", 
+  busquedas: "🔭",
   Descargas: "🌹",
   Utilidades: "🔧",
   Grupo: "👑",
   Economia: "💰",
   Diversión: "🎮",
   Anime: "💕",
-  Ai: "🦾", 
+  Ai: "🦾",
   Seguridad: "🛡️",
   Owner: "💎",
   Otros: "✨",
 };
-  
 
 function formatearUptime(segundos) {
   const d = Math.floor(segundos / 86400);
@@ -83,24 +82,27 @@ export default {
     texto += `│ 💵 Yui  │ ⏱️ ${uptime}\n`;
     texto += `│ ⚡ ${totalComandos} cmd  │ 📦 ${allPlugins.length} plugins\n`;
     texto += `│ 🕐 ${fecha}\n`;
-    texto += `│ 🌐 Powerby:𝐖𝐇𝐀𝐓𝐒𝐀𝐏𝐏 𝐋𝐋𝐂`;   
     texto += `╰───────────────◉\n\n`;
 
-    texto += `🌹 *MIS COMANDOS* 🦋`;
-    texto += `🕹 𝐈𝐀 𝐄𝐍 𝐃𝐄𝐒𝐀𝐑𝐑𝐎𝐋𝐋𝐎 📡\n`;
+    texto += `🌹 *MIS COMANDOS* 🦋 🕹 𝐈𝐀 𝐄𝐍 𝐃𝐄𝐒𝐀𝐑𝐑𝐎𝐋𝐋𝐎 📡\n`;
 
     for (const categoria of nombresCategorias) {
       const icono = ICONOS_CATEGORIA[categoria] || "✨";
+      const comandosCategoria = categorias[categoria];
+
       texto += `\n╭─${icono} *${categoria}* ${icono}\n`;
-      for (const plugin of categorias[categoria]) {
+
+      comandosCategoria.forEach((plugin, i) => {
         const comandoPrincipal = plugin.command[0];
         const alias = plugin.command.slice(1).length > 0
           ? ` (${plugin.command.slice(1).join(", ")})`
           : "";
+        texto += `│\n`;
         texto += `│ ➤ *${comandoPrincipal}*${alias}\n`;
         texto += `│   ${plugin.description || "Sin descripción"}\n`;
-      }
-      texto += `╰────────────────────╯\n`;
+      });
+
+      texto += `│\n╰────────────────────╯\n`;
     }
 
     texto += `\n🦋┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈🦋\n`;
