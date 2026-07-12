@@ -85,7 +85,8 @@ export default {
     texto += `│ 🕐 ${fecha}\n`;
     texto += `╰────────────────────╯\n\n`;
 
-    texto += `🌹 *MIS COMANDOS* 🦋\n`;
+    texto += `🌹 *MIS COMANDOS* 🦋`;
+    texto += `🕹 𝐈𝐀 𝐄𝐍 𝐃𝐄𝐒𝐀𝐑𝐑𝐎𝐋𝐋𝐎 📡\n`;
 
     for (const categoria of nombresCategorias) {
       const icono = ICONOS_CATEGORIA[categoria] || "✨";
