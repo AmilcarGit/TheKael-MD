@@ -1,4 +1,3 @@
-import "dotenv/config";
 import baileysPkg from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import readline from "readline";
