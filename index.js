@@ -8,6 +8,7 @@ import fs from "fs";
 import { config } from "./config.js";
 import { loadPlugins } from "./pluginLoader.js";
 import { pasaFiltros, esAdminDeGrupo, botEsAdmin } from "./middlewares.js";
+import { manejarRespuestaInteractiva } from "./interactiveManager.js";
 import { obtenerConfigGrupo } from "./groupSettings.js";
 import * as subbotManager from "./subbotManager.js";
 import { iniciarLimpiezaAutomatica } from "./limpieza.js";
@@ -267,21 +268,38 @@ async function startBot() {
       if (!configGrupo.welcome) return;
 
       const nombreGrupo = metadata.subject;
+      const totalMiembros = metadata.participants.length;
 
       for (const participante of participants) {
         const numero = participante.split("@")[0].split(":")[0];
 
+        let fotoPerfil = null;
+        try {
+          fotoPerfil = await sock.profilePictureUrl(participante, "image");
+        } catch (_) {
+          fotoPerfil = "https://i.imgur.com/1Q9ZQ2M.png";
+        }
+
         try {
           if (action === "add") {
+            const texto =
+              `⭐ ¡Bienvenido/a @${numero} a *${nombreGrupo}*!\n` +
+              `Esperamos que la pases increíble por aquí. ❀\n\n` +
+              `👥 Ahora somos *${totalMiembros}* miembros.`;
+
             await enviarConReintento(sock, chatId, {
-              text:
-                `⭐ ¡Bienvenido/a @${numero} a *${nombreGrupo}*!\n` +
-                `Esperamos que la pases increíble por aquí. ❀`,
+              image: { url: fotoPerfil },
+              caption: texto,
               mentions: [participante],
             });
           } else if (action === "remove") {
+            const texto =
+              `👋 @${numero} salió de *${nombreGrupo}*. ¡Hasta pronto!\n\n` +
+              `👥 Quedamos *${totalMiembros}* miembros.`;
+
             await enviarConReintento(sock, chatId, {
-              text: `👋 @${numero} salió de *${nombreGrupo}*. ¡Hasta pronto!`,
+              image: { url: fotoPerfil },
+              caption: texto,
               mentions: [participante],
             });
           }
@@ -306,6 +324,15 @@ async function startBot() {
 
     const chatId = msg.key.remoteJid;
     const sender = msg.key.participant || msg.key.remoteJid;
+
+    const contextInteractivo = { chatId, sender, allPlugins: plugins };
+    const fueInteractivo = await manejarRespuestaInteractiva(sock, msg, contextInteractivo).catch(
+      (err) => {
+        console.log(chalk.red("❌ Error manejando respuesta interactiva:"), err);
+        return false;
+      }
+    );
+    if (fueInteractivo) return;
 
     const body =
       msg.message.conversation ||
