@@ -19,8 +19,7 @@ async function obtenerImagenMenu() {
 }
 
 const ICONOS_CATEGORIA = {
-  General: "🦋",
-  Info: "🎀",
+  Info-Bot: "🦋",
   busquedas: "🔭", 
   Descargas: "🌹",
   Utilidades: "🔧",
