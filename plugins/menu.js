@@ -19,7 +19,7 @@ async function obtenerImagenMenu() {
 }
 
 const ICONOS_CATEGORIA = {
-  Info-Bot: "🦋",
+  InfoBot: "🦋",
   busquedas: "🔭", 
   Descargas: "🌹",
   Utilidades: "🔧",
