@@ -6,7 +6,7 @@ import fs from "fs";
 import path from "path";
 
 import { config } from "./config.js";
-import { pasaFiltros, esAdminDeGrupo, botEsAdmin } from "./middlewares.js";
+import { pasaFiltros, esAdminDeGrupo, botEsAdmin, esOwner } from "./middlewares.js";
 import { manejarRespuestaInteractiva } from "./interactiveManager.js";
 import { obtenerConfigGrupo } from "./groupSettings.js";
 
@@ -347,7 +347,7 @@ async function iniciarSocketSubbot(numeroLimpio, sessionFolder, registro, { onPa
 
       if (configGrupo.antilink) {
         const numeroLimpioSender = sender.split("@")[0].split(":")[0];
-        const esDueño = numeroLimpioSender === config.ownerNumber;
+        const esDueño = esOwner(numeroLimpioSender);
         let esAdmin = false;
 
         if (!esDueño) {
