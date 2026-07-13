@@ -39,13 +39,14 @@ export default {
   command: ["crearcodigo", "createcode", "newcode"],
   category: "Owner",
   description: "Crea un código de regalo para la API (solo owner)",
+  ownerOnly: true,
   run: async (sock, msg, args, context) => {
     const { chatId, sender } = context;
     
     const numeroLimpio = sender.split("@")[0];
-    const esDueño = esOwner(numeroLimpio);
+    const esElDueño = esOwner(numeroLimpio);
 
-    if (!esDueño) {
+    if (!esElDueño) {
       await sock.sendMessage(chatId, {
         text: `✰ ${bold("Acceso denegado")}\n` +
               `➮ Solo el ${bold("owner")} puede usar este comando.`
