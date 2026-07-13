@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { config } from "../config.js";
+import { esOwner } from "../middlewares.js";
 
 const API_URL = 'https://dv-edward.onrender.com';
 const API_KEY = 'edward';
@@ -42,9 +43,9 @@ export default {
     const { chatId, sender } = context;
     
     const numeroLimpio = sender.split("@")[0];
-    const esOwner = numeroLimpio === config.ownerNumber;
+    const esDueño = esOwner(numeroLimpio);
 
-    if (!esOwner) {
+    if (!esDueño) {
       await sock.sendMessage(chatId, {
         text: `✰ ${bold("Acceso denegado")}\n` +
               `➮ Solo el ${bold("owner")} puede usar este comando.`
