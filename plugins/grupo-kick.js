@@ -1,3 +1,4 @@
+import { config } from "../config.js";
 import { resolverParticipante, esOwner } from "../middlewares.js";
 
 export default {
