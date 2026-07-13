@@ -1,5 +1,4 @@
-import { config } from "../config.js";
-import { resolverParticipante } from "../middlewares.js";
+import { resolverParticipante, esOwner } from "../middlewares.js";
 
 export default {
   command: ["kick", "expulsar"],
@@ -38,7 +37,7 @@ export default {
       );
     }
 
-    if (numero === config.ownerNumber) {
+    if (esOwner(numero)) {
       return await sock.sendMessage(
         chatId,
         {
