@@ -157,6 +157,8 @@ El `pluginLoader.js` lo detecta y carga automáticamente al reiniciar el bot, no
 Al no usar prefijo, cualquier palabra suelta que coincida con un `command` de un plugin puede activarlo. Ten cuidado al nombrar comandos nuevos para evitar que se disparen con palabras comunes de una conversación normal.
 
 ---
+### Si Bas  a usar esta Base para tu Bot 🔭 
+PORFAVOR DEJAR CRÉDITOS AL CREADOR Y EVITAR PROBLEMAS🧸
 
 ## 📄 Licencia
 
