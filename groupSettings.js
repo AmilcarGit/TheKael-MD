@@ -26,6 +26,8 @@ export function obtenerConfigGrupo(chatId) {
     antilink: true,
     activo: true,
     soloPrincipal: false,
+    antiflood: false,
+    antispam: false,
     ...(grupos[chatId] || {}),
   };
 }
