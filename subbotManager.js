@@ -359,7 +359,7 @@ async function iniciarSocketSubbot(numeroLimpio, sessionFolder, registro, { onPa
       const configGrupo = obtenerConfigGrupo(chatId);
 
       if (configGrupo.antilink) {
-        const numeroLimpioSender = await resolverNumeroReal(sock, sender);
+        const numeroLimpioSender = await resolverNumeroReal(sock, sender, msg);
         const esDueño = esOwner(numeroLimpioSender);
         let esAdmin = false;
 
@@ -410,7 +410,7 @@ async function iniciarSocketSubbot(numeroLimpio, sessionFolder, registro, { onPa
 
     if (esGrupo && (obtenerConfigGrupo(chatId).antiflood || obtenerConfigGrupo(chatId).antispam)) {
       const configGrupo = obtenerConfigGrupo(chatId);
-      const numeroLimpioSender = await resolverNumeroReal(sock, sender);
+      const numeroLimpioSender = await resolverNumeroReal(sock, sender, msg);
       const esDueño = esOwner(numeroLimpioSender);
       let esAdmin = false;
 
