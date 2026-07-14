@@ -23,7 +23,7 @@ const ICONOS_CATEGORIA = {
   Otros: "✨",
 };
 
-const ANCHO = 40;
+const ANCHO = 44;
 
 let ultimoEstadoCarga = { invalidos: [], errores: [] };
 
@@ -31,18 +31,35 @@ export function obtenerEstadoUltimaCarga() {
   return ultimoEstadoCarga;
 }
 
-function lineaCaja(texto = "", color = (t) => t) {
+function centrar(texto, ancho) {
+  const visible = texto.replace(/\x1b\[[0-9;]*m/g, "");
+  const espacio = Math.max(0, ancho - visible.length);
+  const izq = Math.floor(espacio / 2);
+  const der = espacio - izq;
+  return " ".repeat(izq) + texto + " ".repeat(der);
+}
+
+function fila(texto = "", color = (t) => t) {
   const visible = texto.replace(/\x1b\[[0-9;]*m/g, "");
   const relleno = Math.max(0, ANCHO - visible.length - 4);
-  return chalk.magentaBright("│ ") + color(texto) + " ".repeat(relleno) + chalk.magentaBright(" │");
+  return (
+    chalk.hex("#e07bff")("┃ ") +
+    color(texto) +
+    " ".repeat(relleno) +
+    chalk.hex("#e07bff")(" ┃")
+  );
 }
 
-function bordeSuperior() {
-  return chalk.magentaBright("╭" + "─".repeat(ANCHO - 2) + "╮");
+function separador(caracterIzq = "┣", caracterDer = "┫") {
+  return chalk.hex("#e07bff")(caracterIzq + "━".repeat(ANCHO - 2) + caracterDer);
 }
 
-function bordeInferior() {
-  return chalk.magentaBright("╰" + "─".repeat(ANCHO - 2) + "╯");
+function tope() {
+  return chalk.hex("#ff9ecf")("┏" + "━".repeat(ANCHO - 2) + "┓");
+}
+
+function base() {
+  return chalk.hex("#ff9ecf")("┗" + "━".repeat(ANCHO - 2) + "┛");
 }
 
 export async function loadPlugins() {
@@ -59,6 +76,11 @@ export async function loadPlugins() {
     .filter((file) => file.endsWith(".js"));
 
   const total = files.length || 1;
+
+  console.log("");
+  console.log(chalk.hex("#ff9ecf")(centrar("✦ ⋆｡ 　˚ 　★ 　⋆", 50)));
+  console.log(chalk.hex("#e07bff").bold(centrar(`Cargando ${config.botName}`, 50)));
+  console.log("");
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -78,12 +100,15 @@ export async function loadPlugins() {
       errores.push({ file, err });
     }
 
-    const barraLargo = 18;
+    const barraLargo = 24;
     const llenos = Math.round(((i + 1) / total) * barraLargo);
-    const barra = "▓".repeat(llenos) + "░".repeat(barraLargo - llenos);
+    const porcentaje = Math.round(((i + 1) / total) * 100);
+    const barra =
+      chalk.hex("#ff6fc4")("●".repeat(llenos)) +
+      chalk.gray("·".repeat(barraLargo - llenos));
 
     process.stdout.write(
-      `\r🦋 ${chalk.magentaBright(barra)} ${i + 1}/${total}  `
+      `\r  ${barra}  ${chalk.hex("#e07bff").bold(porcentaje + "%")}   `
     );
   }
 
@@ -97,38 +122,56 @@ export async function loadPlugins() {
     categorias[cat] = (categorias[cat] || 0) + 1;
   }
 
-  console.log(bordeSuperior());
-  console.log(lineaCaja(`🌹 ${config.botName}`, chalk.white.bold));
-  console.log(lineaCaja(`✅ ${plugins.length} plugin(s) cargado(s)`, chalk.green));
+  console.log(tope());
+  console.log(fila(centrar(`🌸 ${config.botName} 🌸`, ANCHO - 4), chalk.white.bold));
+  console.log(fila(centrar(`por ${config.creator}`, ANCHO - 4), chalk.hex("#d9a9ff")));
+  console.log(separador());
+  console.log(
+    fila(
+      `  ✅  ${plugins.length} comando(s) listo(s) para volar`,
+      chalk.greenBright
+    )
+  );
 
   const nombresCategorias = Object.entries(categorias).sort();
   if (nombresCategorias.length > 0) {
-    console.log(chalk.magentaBright("├" + "─".repeat(ANCHO - 2) + "┤"));
-    for (const [cat, cantidad] of nombresCategorias) {
-      const icono = ICONOS_CATEGORIA[cat] || "✨";
-      console.log(lineaCaja(`${icono} ${cat}: ${cantidad}`, chalk.gray));
+    console.log(separador());
+    for (let i = 0; i < nombresCategorias.length; i += 2) {
+      const [catA, numA] = nombresCategorias[i];
+      const iconoA = ICONOS_CATEGORIA[catA] || "✨";
+      const colA = `${iconoA} ${catA}: ${numA}`;
+
+      if (nombresCategorias[i + 1]) {
+        const [catB, numB] = nombresCategorias[i + 1];
+        const iconoB = ICONOS_CATEGORIA[catB] || "✨";
+        const colB = `${iconoB} ${catB}: ${numB}`;
+        const colAPad = colA.padEnd(19, " ");
+        console.log(fila(`  ${colAPad} ${colB}`, chalk.hex("#d9a9ff")));
+      } else {
+        console.log(fila(`  ${colA}`, chalk.hex("#d9a9ff")));
+      }
     }
   }
 
   if (invalidos.length > 0) {
-    console.log(chalk.magentaBright("├" + "─".repeat(ANCHO - 2) + "┤"));
-    console.log(lineaCaja(`⚠️ ${invalidos.length} inválido(s)`, chalk.yellow));
+    console.log(separador());
+    console.log(fila(`  ⚠️  ${invalidos.length} archivo(s) inválido(s)`, chalk.yellow.bold));
     for (const file of invalidos) {
-      console.log(lineaCaja(`  · ${file}`, chalk.yellow));
+      console.log(fila(`     ‣ ${file}`, chalk.yellow));
     }
   }
 
   if (errores.length > 0) {
-    console.log(chalk.magentaBright("├" + "─".repeat(ANCHO - 2) + "┤"));
-    console.log(lineaCaja(`❌ ${errores.length} con error`, chalk.red));
+    console.log(separador());
+    console.log(fila(`  ❌  ${errores.length} con error al cargar`, chalk.red.bold));
     for (const { file, err } of errores) {
-      const mensaje = String(err.message || err).slice(0, 30);
-      console.log(lineaCaja(`  · ${file}`, chalk.red));
-      console.log(lineaCaja(`    ${mensaje}`, chalk.red));
+      const mensaje = String(err.message || err).slice(0, 32);
+      console.log(fila(`     ‣ ${file}`, chalk.red));
+      console.log(fila(`       ${mensaje}`, chalk.redBright));
     }
   }
 
-  console.log(bordeInferior());
+  console.log(base());
   console.log("");
 
   return plugins;
