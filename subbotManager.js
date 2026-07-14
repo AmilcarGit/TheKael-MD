@@ -190,7 +190,7 @@ async function iniciarSocketSubbot(numeroLimpio, sessionFolder, registro, { onPa
   });
 
   if (usePairingCode) {
-    setTimeout(async () => {
+    const pedirCodigoConReintentos = async (intentosRestantes = 4) => {
       try {
         const code = await sock.requestPairingCode(numeroLimpio);
         console.log(
@@ -199,11 +199,23 @@ async function iniciarSocketSubbot(numeroLimpio, sessionFolder, registro, { onPa
         );
         if (onPairingCode) onPairingCode(code);
       } catch (err) {
+        if (intentosRestantes > 0) {
+          console.log(
+            chalk.yellow(
+              `⚠️  [Subbot ${numeroLimpio}] No se pudo pedir el código todavía, reintentando en 4s... (${intentosRestantes} intento(s) restante(s))`
+            )
+          );
+          await new Promise((r) => setTimeout(r, 4000));
+          return pedirCodigoConReintentos(intentosRestantes - 1);
+        }
+
         console.log(chalk.red(`❌ [Subbot ${numeroLimpio}] Error pidiendo el código:`), err);
-        if (onEstado) onEstado(`❌ No se pudo generar el código de vinculación. Intenta de nuevo.`);
+        if (onEstado) onEstado(`❌ No se pudo generar el código de vinculación. Intenta de nuevo con *code*.`);
         subbotsActivos.delete(numeroLimpio);
       }
-    }, 3000);
+    };
+
+    setTimeout(() => pedirCodigoConReintentos(), 2000);
   }
 
   sock.ev.on("connection.update", (update) => {
