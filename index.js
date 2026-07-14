@@ -15,7 +15,7 @@ import fs from "fs";
 
 import { config } from "./config.js";
 import { loadPlugins } from "./pluginLoader.js";
-import { pasaFiltros, esAdminDeGrupo, botEsAdmin, esOwner } from "./middlewares.js";
+import { pasaFiltros, esAdminDeGrupo, botEsAdmin, esOwner, resolverNumeroReal } from "./middlewares.js";
 import { evaluarMensaje } from "./spamGuard.js";
 import { manejarRespuestaInteractiva } from "./interactiveManager.js";
 import { obtenerConfigGrupo } from "./groupSettings.js";
@@ -367,7 +367,7 @@ async function startBot() {
       const configGrupo = obtenerConfigGrupo(chatId);
 
       if (configGrupo.antilink) {
-        const numeroBase = numeroLimpio.split(":")[0];
+        const numeroBase = await resolverNumeroReal(sock, sender);
         const esDueño = esOwner(numeroBase);
         let esAdmin = false;
 
@@ -419,7 +419,7 @@ async function startBot() {
 
     if (esGrupo && (obtenerConfigGrupo(chatId).antiflood || obtenerConfigGrupo(chatId).antispam)) {
       const configGrupo = obtenerConfigGrupo(chatId);
-      const numeroBase = numeroLimpio.split(":")[0];
+      const numeroBase = await resolverNumeroReal(sock, sender);
       const esDueño = esOwner(numeroBase);
       let esAdmin = false;
 
