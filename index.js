@@ -86,7 +86,7 @@ async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState(
     config.sessionFolder
   );
-  const { version } = await fetchLatestBaileysVersion();
+  const { version } = await fetchLatestWaWebVersion();
 
   const usePairingCode = !fs.existsSync(
     `${config.sessionFolder}/creds.json`
