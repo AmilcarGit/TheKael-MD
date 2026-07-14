@@ -4,6 +4,28 @@ export function esOwner(numero) {
   return config.ownerNumbers.includes(numero);
 }
 
+export async function resolverNumeroReal(sock, sender) {
+  const crudo = String(sender || "");
+  const limpioDirecto = crudo.split("@")[0].split(":")[0].replace(/\D/g, "");
+
+  if (!crudo.endsWith("@lid")) {
+    return limpioDirecto;
+  }
+
+  try {
+    const contactos = sock?.contacts || {};
+    const contacto = contactos[crudo];
+    const candidato = contacto?.id || contacto?.jid || contacto?.phoneNumber || contacto?.pn;
+
+    if (candidato && !String(candidato).endsWith("@lid")) {
+      const numeroReal = String(candidato).split("@")[0].split(":")[0].replace(/\D/g, "");
+      if (numeroReal) return numeroReal;
+    }
+  } catch (_) {}
+
+  return limpioDirecto;
+}
+
 /**
  * Verifica si el propio bot es administrador del grupo.
  * Reutiliza la lógica robusta de esAdminDeGrupo (incluye resolución de @lid),
@@ -133,7 +155,7 @@ export async function resolverParticipante(sock, chatId, numero) {
 
 export async function pasaFiltros(sock, msg, plugin, context) {
   const { chatId, sender } = context;
-  const numero = sender.split("@")[0].split(":")[0];
+  const numero = await resolverNumeroReal(sock, sender);
   const esGrupo = chatId.endsWith("@g.us");
 
   if (plugin.ownerOnly && !esOwner(numero)) {
