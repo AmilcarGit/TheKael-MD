@@ -367,7 +367,7 @@ async function startBot() {
       const configGrupo = obtenerConfigGrupo(chatId);
 
       if (configGrupo.antilink) {
-        const numeroBase = await resolverNumeroReal(sock, sender);
+        const numeroBase = await resolverNumeroReal(sock, sender, msg);
         const esDueño = esOwner(numeroBase);
         let esAdmin = false;
 
@@ -419,7 +419,7 @@ async function startBot() {
 
     if (esGrupo && (obtenerConfigGrupo(chatId).antiflood || obtenerConfigGrupo(chatId).antispam)) {
       const configGrupo = obtenerConfigGrupo(chatId);
-      const numeroBase = await resolverNumeroReal(sock, sender);
+      const numeroBase = await resolverNumeroReal(sock, sender, msg);
       const esDueño = esOwner(numeroBase);
       let esAdmin = false;
 
