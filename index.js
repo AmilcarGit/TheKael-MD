@@ -271,6 +271,30 @@ async function startBot() {
 
   sock.ev.on("creds.update", saveCreds);
 
+const MENSAJES_BIENVENIDA = [
+  (numero, grupo, total) =>
+    `⭐ ¡Bienvenido/a @${numero} a *${grupo}*!\nEsperamos que la pases increíble por aquí. ❀\n\n👥 Ahora somos *${total}* miembros.`,
+  (numero, grupo, total) =>
+    `🌸 @${numero} acaba de llegar a *${grupo}*.\n¡Ponte cómodo/a y siéntete como en casa! 💕\n\n👥 Somos *${total}* en total.`,
+  (numero, grupo, total) =>
+    `🎉 ¡Un nuevo integrante! Bienvenido/a @${numero} a *${grupo}*.\nCualquier duda, no dudes en preguntar. 🦋\n\n👥 Ya somos *${total}* miembros.`,
+  (numero, grupo, total) =>
+    `✨ @${numero} se unió a *${grupo}*.\nQue tu paso por aquí sea genial. 🌹\n\n👥 Miembros actuales: *${total}*.`,
+];
+
+const TIEMPO_AUTOBORRADO_MS = 3 * 60 * 1000;
+
+async function enviarBienvenidaSinSello(sockOriginal, chatId, content, intentos = 2) {
+  for (let i = 0; i <= intentos; i++) {
+    try {
+      return await sockOriginal(chatId, content);
+    } catch (err) {
+      if (i === intentos) throw err;
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+  }
+}
+
   sock.ev.on("group-participants.update", async (update) => {
     const { id: chatId, participants, action } = update;
 
@@ -296,16 +320,20 @@ async function startBot() {
 
         try {
           if (action === "add") {
-            const texto =
-              `⭐ ¡Bienvenido/a @${numero} a *${nombreGrupo}*!\n` +
-              `Esperamos que la pases increíble por aquí. ❀\n\n` +
-              `👥 Ahora somos *${totalMiembros}* miembros.`;
+            const plantilla = MENSAJES_BIENVENIDA[Math.floor(Math.random() * MENSAJES_BIENVENIDA.length)];
+            const texto = plantilla(numero, nombreGrupo, totalMiembros);
 
-            await enviarConReintento(sock, chatId, {
+            const enviado = await enviarBienvenidaSinSello(enviarOriginal, chatId, {
               image: { url: fotoPerfil },
               caption: texto,
               mentions: [participante],
             });
+
+            if (enviado?.key) {
+              setTimeout(() => {
+                sock.sendMessage(chatId, { delete: enviado.key }).catch(() => {});
+              }, TIEMPO_AUTOBORRADO_MS);
+            }
           } else if (action === "remove") {
             const texto =
               `👋 @${numero} salió de *${nombreGrupo}*. ¡Hasta pronto!\n\n` +
