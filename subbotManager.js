@@ -372,7 +372,7 @@ async function iniciarSocketSubbot(numeroLimpio, sessionFolder, registro, { onPa
     if (!body) return;
 
     const esGrupo = chatId.endsWith("@g.us");
-    const contieneLink = /chat\.whatsapp\.com\/[a-zA-Z0-9]+/i.test(body);
+    const contieneLink = /(https?:\/\/|chat\.whatsapp\.com|wa\.me\/|www\.)/i.test(body);
 
     if (esGrupo && contieneLink) {
       const configGrupo = obtenerConfigGrupo(chatId);
