@@ -46,14 +46,24 @@ export default {
     try {
       await subbotManager.crearSubbot(numero, {
         onPairingCode: async (code) => {
-          await sock.sendMessage(chatId, {
+          const infoMsg = await sock.sendMessage(chatId, {
             text:
               `🦋 *Tu código de vinculación*\n\n` +
               `📱 Número: ${numero}\n\n` +
               `Ve a WhatsApp > Dispositivos vinculados > Vincular con número de teléfono, e ingresa el código de abajo.\n\n` +
-              `⏳ El código expira en unos minutos, si no lo usas a tiempo escribe *code* de nuevo.`,
+              `⏳ El código expira en unos minutos, si no lo usas a tiempo escribe *code* de nuevo.\n` +
+              `⏱️ _Estos mensajes se autoeliminarán en 1 minuto por seguridad._`,
           });
-          await sock.sendMessage(chatId, { text: code });
+          const codeMsg = await sock.sendMessage(chatId, { text: code });
+
+          setTimeout(async () => {
+            try {
+              await sock.sendMessage(chatId, { delete: codeMsg.key });
+            } catch (_) {}
+            try {
+              await sock.sendMessage(chatId, { delete: infoMsg.key });
+            } catch (_) {}
+          }, 60 * 1000);
         },
         onEstado: async (texto) => {
           try {
