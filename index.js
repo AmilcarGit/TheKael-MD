@@ -147,29 +147,6 @@ async function startBot() {
     }
   });
 
-  const enviarOriginal = sock.sendMessage.bind(sock);
-  sock.sendMessage = (jid, content, options = {}) => {
-    const newsletterContext = {
-      forwardingScore: 999,
-      isForwarded: true,
-      forwardedNewsletterMessageInfo: {
-        newsletterJid: config.newsletterJid,
-        newsletterName: config.botName,
-        serverMessageId: 143,
-      },
-    };
-
-    const contentConContexto = {
-      ...content,
-      contextInfo: {
-        ...(content?.contextInfo || {}),
-        ...newsletterContext,
-      },
-    };
-
-    return enviarOriginal(jid, contentConContexto, options);
-  };
-
   if (usePairingCode) {
     const metodo = await question(
       chalk.yellow(
