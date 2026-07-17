@@ -3,6 +3,7 @@ import { obtenerUsuario, guardarUsuario, formatearMonto, tieneEfecto } from "../
 export default {
   command: ["interes", "cobrar"],
   category: "Economia",
+  requiereRegistro: true,
   description: "Cobra los intereses generados por tus inversiones.",
   run: async (sock, msg, args, context) => {
     const { sender, chatId } = context;
