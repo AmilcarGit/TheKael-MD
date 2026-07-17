@@ -18,6 +18,7 @@ function obtenerObjetivo(msg) {
 export default {
   command: ["casarse", "divorciarse", "pareja"],
   category: "Economia",
+  requiereRegistro: true,
   description: "Cásate con alguien del grupo o revisa tu estado civil.",
 
   run: async (sock, msg, args, context) => {
