@@ -16,6 +16,7 @@ const ITEMS = [
 export default {
   command: ["inventario", "inv"],
   category: "Economia",
+  requiereRegistro: true,
   description: "Muestra los items que has comprado.",
 
   run: async (sock, msg, args, context) => {
