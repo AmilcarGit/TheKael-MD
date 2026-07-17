@@ -3,6 +3,7 @@ import { obtenerRanking, formatearMonto } from "../economyDB.js";
 export default {
   command: ["topricos", "toprich", "ranking"],
   category: "Economia",
+  requiereRegistro: true,
   description: "Muestra el top de usuarios con más Yui.",
 
   run: async (sock, msg, args, context) => {
