@@ -11,6 +11,7 @@ function girarSlot() {
 export default {
   command: ["tragamonedas", "slots", "ruleta"],
   category: "Economia",
+  requiereRegistro: true,
   description: "Juega tragamonedas o ruleta apostando Yui.",
 
   run: async (sock, msg, args, context) => {
