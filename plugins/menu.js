@@ -95,6 +95,8 @@ export default {
     texto += filaConPuntos("⏱️", "Actividad", uptime) + "\n";
     texto += filaConPuntos("🕐", "Fecha", fecha) + "\n";
 
+texto += filaConPuntos ("♬MIS COMANDOS𝄞", + "\n";
+
     for (const categoria of nombresCategorias) {
       const icono = ICONOS_CATEGORIA[categoria] || "🌸";
       texto += tituloSeccion(icono, categoria, categorias[categoria].length) + "\n";
