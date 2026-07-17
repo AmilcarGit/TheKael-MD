@@ -1,4 +1,5 @@
 import { config } from "./config.js";
+import { estaRegistrado } from "./registerDB.js";
 
 export function esOwner(numero) {
   return config.ownerNumbers.includes(numero);
@@ -271,6 +272,20 @@ export async function pasaFiltros(sock, msg, plugin, context) {
       );
       return false;
     }
+  }
+
+  if (plugin.requiereRegistro && !esOwner(numero) && !estaRegistrado(numero)) {
+    await sock.sendMessage(
+      chatId,
+      {
+        text:
+          "❀ Primero debes *registrarte* para usar este comando.\n\n" +
+          "Uso: *reg <nombre> <edad>*\n" +
+          "Ejemplo: *reg Amilcar 20*",
+      },
+      { quoted: msg }
+    );
+    return false;
   }
 
   return true;
