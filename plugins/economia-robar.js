@@ -12,6 +12,7 @@ const ultimosIntentos = new Map();
 export default {
   command: ["robar"],
   category: "Economia",
+  requiereRegistro: true,
   description: "Intenta robarle Yui a otro usuario (mencionando o respondiendo).",
 
   run: async (sock, msg, args, context) => {
