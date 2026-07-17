@@ -59,6 +59,7 @@ async function finalizarSubasta(sock, chatId) {
 export default {
   command: ["subasta", "pujar"],
   category: "Economia",
+  requiereRegistro: true,
   description: "Subasta un item de tu inventario o puja por el activo.",
 
   run: async (sock, msg, args, context) => {
