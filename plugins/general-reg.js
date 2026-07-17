@@ -4,6 +4,7 @@ import {
   registrarUsuario,
   eliminarRegistro,
 } from "../registerDB.js";
+import { resolverNumeroReal } from "../middlewares.js";
 
 export default {
   command: ["reg", "registrar", "register"],
@@ -13,7 +14,7 @@ export default {
 
   run: async (sock, msg, args, context) => {
     const { chatId, sender } = context;
-    const numero = sender.split("@")[0].split(":")[0];
+    const numero = await resolverNumeroReal(sock, sender, msg);
 
     if (args[0]?.toLowerCase() === "borrar" || args[0]?.toLowerCase() === "eliminar") {
       const eliminado = eliminarRegistro(numero);
