@@ -18,8 +18,25 @@ async function obtenerImagenMenu() {
   }
 }
 
-const ANCHO = 33;
-const LINEA = "─".repeat(ANCHO);
+const ANCHO = 34;
+const LINEA = "⋆".repeat(ANCHO);
+const LINEA_FINA = "─".repeat(ANCHO);
+
+const ICONOS_CATEGORIA = {
+  General: "🦋",
+  Grupo: "👑",
+  Descargas: "🌹",
+  Busquedas: "🔎",
+  Anime: "💕",
+  Economia: "💰",
+  Diversion: "🎮",
+  Diversión: "🎮",
+  Utilidades: "🔧",
+  Media: "✨",
+  Owner: "💎",
+  Info: "🎀",
+  Otros: "🌸",
+};
 
 function formatearUptime(segundos) {
   const d = Math.floor(segundos / 86400);
@@ -31,15 +48,15 @@ function formatearUptime(segundos) {
   return `${m}m ${s}s`;
 }
 
-function filaConPuntos(etiqueta, valor) {
-  const inicio = `  ${etiqueta} `;
+function filaConPuntos(icono, etiqueta, valor) {
+  const inicio = `  ${icono} ${etiqueta} `;
   const fin = ` ${valor}`;
   const puntos = Math.max(2, ANCHO - inicio.length - fin.length);
-  return inicio + ".".repeat(puntos) + fin;
+  return inicio + "·".repeat(puntos) + fin;
 }
 
-function tituloSeccion(texto) {
-  return `\n  *${texto.toUpperCase()}*\n  ${LINEA}`;
+function tituloSeccion(icono, texto, cantidad) {
+  return `\n  ${icono} 『 *${texto.toUpperCase()}* 』 — ${cantidad}\n  ${LINEA_FINA}`;
 }
 
 export default {
@@ -66,33 +83,36 @@ export default {
     const numero = sender.split("@")[0].split(":")[0];
     const uptime = formatearUptime(process.uptime());
 
-    let texto = `  ${config.botName.toUpperCase()}\n`;
-    texto += `  Asistente Virtual\n`;
-    texto += `  ${LINEA}\n\n`;
+    let texto = `╭${LINEA}╮\n`;
+    texto += `   👑 ${config.botName.toUpperCase()} 👑\n`;
+    texto += `   ✧ Asistente Virtual Premium ✧\n`;
+    texto += `╰${LINEA}╯\n\n`;
 
-    texto += filaConPuntos("Usuario", `@${numero}`) + "\n";
-    texto += filaConPuntos("Creador", config.creator) + "\n";
-    texto += filaConPuntos("Comandos", totalComandos) + "\n";
-    texto += filaConPuntos("Plugins", allPlugins.length) + "\n";
-    texto += filaConPuntos("Actividad", uptime) + "\n";
-    texto += filaConPuntos("Fecha", fecha) + "\n";
+    texto += filaConPuntos("👤", "Usuario", `@${numero}`) + "\n";
+    texto += filaConPuntos("💎", "Creador", config.creator) + "\n";
+    texto += filaConPuntos("⚡", "Comandos", totalComandos) + "\n";
+    texto += filaConPuntos("📦", "Plugins", allPlugins.length) + "\n";
+    texto += filaConPuntos("⏱️", "Actividad", uptime) + "\n";
+    texto += filaConPuntos("🕐", "Fecha", fecha) + "\n";
 
     for (const categoria of nombresCategorias) {
-      texto += tituloSeccion(categoria) + "\n";
+      const icono = ICONOS_CATEGORIA[categoria] || "🌸";
+      texto += tituloSeccion(icono, categoria, categorias[categoria].length) + "\n";
 
       categorias[categoria].forEach((plugin, i) => {
         const comandoPrincipal = plugin.command[0];
         const alias = plugin.command.slice(1).length > 0
           ? ` · ${plugin.command.slice(1).join(", ")}`
           : "";
-        texto += `  ▸ *${comandoPrincipal}*${alias}\n`;
-        texto += `    ${plugin.description || "Sin descripción"}\n`;
+        texto += `  ➤ *${comandoPrincipal}*${alias}\n`;
+        texto += `     ${plugin.description || "Sin descripción"}\n`;
         if (i < categorias[categoria].length - 1) texto += `\n`;
       });
     }
 
-    texto += `\n  ${LINEA}\n`;
-    texto += `  ${config.botName}  ·  sin prefijo  ·  v${process.env.npm_package_version || "1.0.0"}`;
+    texto += `\n${LINEA}\n`;
+    texto += `   🌹 ${config.botName} — sin prefijo 🌹\n`;
+    texto += `   v${process.env.npm_package_version || "1.0.0"} · hecho con 💕 por ${config.creator}`;
 
     const imagen = await obtenerImagenMenu();
     if (imagen) {
