@@ -18,6 +18,7 @@ import { pasaFiltros, esAdminDeGrupo, botEsAdmin, esOwner, resolverNumeroReal } 
 import { evaluarMensaje } from "./spamGuard.js";
 import { manejarRespuestaInteractiva } from "./interactiveManager.js";
 import { obtenerConfigGrupo } from "./groupSettings.js";
+import { quitarAfk, obtenerAfk, formatearTiempoAfk } from "./afkDB.js";
 
 const CARPETA_SUBBOTS = "./subbots";
 
@@ -317,7 +318,12 @@ async function iniciarSocketSubbot(numeroLimpio, sessionFolder, registro, { onPa
 
         if (action === "add") {
           const plantilla = MENSAJES_BIENVENIDA[Math.floor(Math.random() * MENSAJES_BIENVENIDA.length)];
-          const texto = plantilla(numero, nombreGrupo, totalMiembros);
+          const texto = configGrupo.bienvenidaCustom
+            ? configGrupo.bienvenidaCustom
+                .replace(/{user}/g, `@${numero}`)
+                .replace(/{grupo}/g, nombreGrupo)
+                .replace(/{total}/g, totalMiembros)
+            : plantilla(numero, nombreGrupo, totalMiembros);
 
           try {
             const enviado = await sock.sendMessage(chatId, {
@@ -333,9 +339,13 @@ async function iniciarSocketSubbot(numeroLimpio, sessionFolder, registro, { onPa
             }
           } catch (_) {}
         } else if (action === "remove") {
-          const texto =
-            `👋 @${numero} salió de *${nombreGrupo}*. ¡Hasta pronto!\n\n` +
-            `👥 Quedamos *${totalMiembros}* miembros.`;
+          const texto = configGrupo.despedidaCustom
+            ? configGrupo.despedidaCustom
+                .replace(/{user}/g, `@${numero}`)
+                .replace(/{grupo}/g, nombreGrupo)
+                .replace(/{total}/g, totalMiembros)
+            : `👋 @${numero} salió de *${nombreGrupo}*. ¡Hasta pronto!\n\n` +
+              `👥 Quedamos *${totalMiembros}* miembros.`;
 
           await sock.sendMessage(chatId, {
             image: { url: fotoPerfil },
@@ -370,6 +380,35 @@ async function iniciarSocketSubbot(numeroLimpio, sessionFolder, registro, { onPa
       "";
 
     if (!body) return;
+
+    const numeroBaseAfk = sender.split("@")[0].split(":")[0];
+    const primeraPalabraAfk = body.trim().split(/\s+/)[0]?.toLowerCase();
+    if (primeraPalabraAfk !== "afk") {
+      const estadoAfkPrevio = quitarAfk(numeroBaseAfk);
+      if (estadoAfkPrevio) {
+        await sock.sendMessage(chatId, {
+          text: `👋 @${numeroBaseAfk} ya volvió (estuvo AFK ${formatearTiempoAfk(estadoAfkPrevio.desde)}).`,
+          mentions: [sender],
+        }).catch(() => {});
+      }
+    }
+
+    const mencionadosAfk = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+    const respondidoAAfk = msg.message?.extendedTextMessage?.contextInfo?.participant;
+    const posiblesAfk = [...mencionadosAfk, respondidoAAfk].filter(Boolean);
+
+    for (const jid of posiblesAfk) {
+      const numeroMencionado = jid.split("@")[0].split(":")[0];
+      const estadoAfk = obtenerAfk(numeroMencionado);
+      if (estadoAfk) {
+        await sock.sendMessage(chatId, {
+          text:
+            `💤 @${numeroMencionado} está *AFK* (${formatearTiempoAfk(estadoAfk.desde)}).\n` +
+            `📝 Razón: ${estadoAfk.razon}`,
+          mentions: [jid],
+        }).catch(() => {});
+      }
+    }
 
     const esGrupo = chatId.endsWith("@g.us");
     const contieneLink = /(https?:\/\/|chat\.whatsapp\.com|wa\.me\/|www\.)/i.test(body);
