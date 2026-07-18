@@ -19,6 +19,7 @@ import { pasaFiltros, esAdminDeGrupo, botEsAdmin, esOwner, resolverNumeroReal } 
 import { evaluarMensaje } from "./spamGuard.js";
 import { manejarRespuestaInteractiva } from "./interactiveManager.js";
 import { obtenerConfigGrupo } from "./groupSettings.js";
+import { quitarAfk, obtenerAfk, formatearTiempoAfk } from "./afkDB.js";
 import * as subbotManager from "./subbotManager.js";
 import { iniciarLimpiezaAutomatica } from "./limpieza.js";
 
@@ -298,7 +299,12 @@ async function enviarBienvenidaSinSello(sockOriginal, chatId, content, intentos 
         try {
           if (action === "add") {
             const plantilla = MENSAJES_BIENVENIDA[Math.floor(Math.random() * MENSAJES_BIENVENIDA.length)];
-            const texto = plantilla(numero, nombreGrupo, totalMiembros);
+            const texto = configGrupo.bienvenidaCustom
+              ? configGrupo.bienvenidaCustom
+                  .replace(/{user}/g, `@${numero}`)
+                  .replace(/{grupo}/g, nombreGrupo)
+                  .replace(/{total}/g, totalMiembros)
+              : plantilla(numero, nombreGrupo, totalMiembros);
 
             const enviado = await enviarBienvenidaSinSello(enviarOriginal, chatId, {
               image: { url: fotoPerfil },
@@ -312,9 +318,13 @@ async function enviarBienvenidaSinSello(sockOriginal, chatId, content, intentos 
               }, TIEMPO_AUTOBORRADO_MS);
             }
           } else if (action === "remove") {
-            const texto =
-              `👋 @${numero} salió de *${nombreGrupo}*. ¡Hasta pronto!\n\n` +
-              `👥 Quedamos *${totalMiembros}* miembros.`;
+            const texto = configGrupo.despedidaCustom
+              ? configGrupo.despedidaCustom
+                  .replace(/{user}/g, `@${numero}`)
+                  .replace(/{grupo}/g, nombreGrupo)
+                  .replace(/{total}/g, totalMiembros)
+              : `👋 @${numero} salió de *${nombreGrupo}*. ¡Hasta pronto!\n\n` +
+                `👥 Quedamos *${totalMiembros}* miembros.`;
 
             await enviarConReintento(sock, chatId, {
               image: { url: fotoPerfil },
@@ -364,6 +374,35 @@ async function enviarBienvenidaSinSello(sockOriginal, chatId, content, intentos 
 
     const numeroLimpio = sender.split("@")[0];
     console.log(chalk.blueBright(`📩 ${numeroLimpio}: `) + body);
+
+    const numeroBaseAfk = numeroLimpio.split(":")[0];
+    const primeraPalabraAfk = body.trim().split(/\s+/)[0]?.toLowerCase();
+    if (primeraPalabraAfk !== "afk") {
+      const estadoAfkPrevio = quitarAfk(numeroBaseAfk);
+      if (estadoAfkPrevio) {
+        await sock.sendMessage(chatId, {
+          text: `👋 @${numeroBaseAfk} ya volvió (estuvo AFK ${formatearTiempoAfk(estadoAfkPrevio.desde)}).`,
+          mentions: [sender],
+        }).catch(() => {});
+      }
+    }
+
+    const mencionados = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+    const respondidoA = msg.message?.extendedTextMessage?.contextInfo?.participant;
+    const posiblesAfk = [...mencionados, respondidoA].filter(Boolean);
+
+    for (const jid of posiblesAfk) {
+      const numeroMencionado = jid.split("@")[0].split(":")[0];
+      const estadoAfk = obtenerAfk(numeroMencionado);
+      if (estadoAfk) {
+        await sock.sendMessage(chatId, {
+          text:
+            `💤 @${numeroMencionado} está *AFK* (${formatearTiempoAfk(estadoAfk.desde)}).\n` +
+            `📝 Razón: ${estadoAfk.razon}`,
+          mentions: [jid],
+        }).catch(() => {});
+      }
+    }
 
     const esGrupo = chatId.endsWith("@g.us");
     const contieneLink = /(https?:\/\/|chat\.whatsapp\.com|wa\.me\/|www\.)/i.test(body);
